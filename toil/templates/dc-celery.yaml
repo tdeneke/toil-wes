@@ -1,0 +1,56 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  generation: 2
+  labels:
+    app: celery-worker
+  name: celery-worker
+spec:
+  replicas: 1
+  selector:
+    app: celery-worker
+    deploymentconfig: celery-worker
+  strategy:
+    activeDeadlineSeconds: 21600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        app: celery-worker
+        deploymentconfig: celery-worker
+    spec:
+      containers:
+      - image: {{ .Values.images.celery }}
+        command:
+            - celery
+        args:
+            - '--broker=amqp://guest:guest@rabbitmq:5672//'
+            - '-A'
+            - toil.server.celery_app
+            - worker
+            - '--loglevel=INFO'
+        imagePullPolicy: Always
+        name: celery-worker
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+            - mountPath: /app/workflows
+              name: workflows
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: workflows
+          persistentVolumeClaim:
+            claimName: workflows
+  test: false

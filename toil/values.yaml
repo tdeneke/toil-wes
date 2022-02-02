@@ -1,0 +1,12 @@
+# Default values for toil.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+host: toil-wes.rahtiapp.fi
+
+images:
+  toil: lvarin/toil-wes:latest
+  celery: lvarin/toil-wes:latest
+  rabbitmq: rabbitmq:3.9.5
+
+

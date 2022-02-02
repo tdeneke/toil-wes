@@ -1,0 +1,52 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: toil-wes
+  name: toil-wes
+spec:
+  replicas: 1
+  selector:
+    app: toil-wes
+    deploymentconfig: toil-wes
+  strategy:
+    activeDeadlineSeconds: 21600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        app: toil-wes
+        deploymentconfig: toil-wes
+    spec:
+      containers:
+      - env:
+        - name: TOIL_WES_BROKER_URL
+          value: amqp://guest:guest@rabbitmq:5672//
+        image: {{ .Values.images.toil }}
+        imagePullPolicy: Always
+        name: toil-wes
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+            - mountPath: /app/workflows
+              name: workflows
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: workflows
+          persistentVolumeClaim:
+            claimName: workflows
+  test: false
+  triggers:
+  - type: ConfigChange

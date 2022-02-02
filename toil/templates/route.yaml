@@ -1,0 +1,17 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: toil-wes
+  name: toil
+spec:
+  host: {{ .Values.host }}
+  port:
+    targetPort: 8080-8080
+  to:
+    kind: Service
+    name: toil
+    weight: 100
+  wildcardPolicy: None
+status:
+  ingress: []
